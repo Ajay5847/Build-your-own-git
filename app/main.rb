@@ -123,8 +123,7 @@ when "ls-tree"
     puts internal_data[-1]
   end
 when "write-tree"
-  tree_sha_hsh = process_dir(Dir.pwd)
-  puts tree_sha_hsh
+  puts process_dir(Dir.pwd)[:binary_digest]
 else
   raise RuntimeError.new("Unknown command #{command}")
 end
