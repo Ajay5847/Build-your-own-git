@@ -58,16 +58,15 @@ def process_dir(dirname)
 
     entry_path = "#{dirname}/#{entry}"
     is_dir = Dir.exist?(entry_path)
+    entry_mode = is_dir ? '40000' : '100644'
 
-    if is_dir
-      entry_mode = '40000'
-      entry_hsh = process_dir(entry_path)[:bin_digest]
+    entry_content = if is_dir
+      process_dir(entry_path)
     else
-      entry_mode = '100644'
-      entry_hsh = process_content(File.read(entry_path), 'blob')[:bin_digest]
+      process_content(File.read(entry_path), 'blob')
     end
 
-    entries << "#{entry_mode} #{entry}\0#{entry_hsh}"
+    entries << "#{entry_mode} #{entry}\0#{entry_content[:bin_digest]}"
   end
 
   total_data_path = entries.join('')
