@@ -44,9 +44,10 @@ when "ls-tree"
   splitted_data = decompressed_data.split("\0")
   splitted_data.each do |data|
     internal_data = data.split(' ')
-    print internal_data[-1]
+    puts internal_data[-1]
   end
-  # puts splitted_data
+  puts splitted_data
+  puts splitted_data[0..-2]
   # print decompressed_data
   # headers, content = decompressed_data.split(" ")
 else
