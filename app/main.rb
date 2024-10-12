@@ -13,7 +13,7 @@ def create_tree(dir_path)
     full_path = File.join(dir_path, path)
     if File.directory?(full_path)
       mode = 040000
-      sha_hsh = create_tree(full_path)
+      sha1_hsh = create_tree(full_path)
     elsif File.file?(full_path)
       mode = 100644  
       sha1_hsh = create_blob(full_path)
