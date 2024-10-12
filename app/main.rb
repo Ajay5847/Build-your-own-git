@@ -41,7 +41,7 @@ when "ls-tree"
   file_path = ".git/objects/#{tree_hsh[0..1]}/#{tree_hsh[2..-1]}"
   compressed_data = File.read(file_path)
   decompressed_data = Zlib::Inflate.inflate(compressed_data)
-  splitted_data == decompressed_data.split("\0")
+  splitted_data = decompressed_data.split("\0")
   puts splitted_data
   print decompressed_data
   # headers, content = decompressed_data.split(" ")
