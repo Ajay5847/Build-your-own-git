@@ -67,7 +67,7 @@ def process_dir(dirname)
       entry_hsh = process_content(entry_path, 'blob')[:bin_digest]
     end
 
-    entries << "#{mode} #{entry}\0#{entry_hsh}"
+    entries << "#{entry_mode} #{entry}\0#{entry_hsh}"
   end
 
   total_data_path = entries.join('')
