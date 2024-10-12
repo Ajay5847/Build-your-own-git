@@ -74,7 +74,8 @@ def process_dir(dirname)
   process_content(total_data_path, 'tree')[:hex_digest]
 end
 
-def process_content(content, content_type)
+def process_content(file_path, content_type)
+  content = File.read(file_path)
   headers = "#{content_type} #{content.bytesize}\0"
   data_hsh = headers + content
   data_hex_hsh = Digest::SHA1.hexdigest(data_hsh)
