@@ -52,44 +52,32 @@ require 'fileutils'
 # end
 
 def process_dir(dirname)
-  entries = []
+  tree_entries = []
   Dir.entries(dirname).sort.each do |entry|
+    path = "#{dirname}/#{entry}"
+    is_dir = Dir.exist?(path)
     next if ['.', '..', '.git'].include?(entry)
-
-    entry_path = "#{dirname}/#{entry}"
-    is_dir = Dir.exist?(entry_path)
     entry_mode = is_dir ? '40000' : '100644'
-
     entry_content = if is_dir
-      process_dir(entry_path)
-    else
-      process_content(File.read(entry_path), 'blob')
-    end
-
-    entries << "#{entry_mode} #{entry}\0#{entry_content[:bin_digest]}"
+                      process_dir(path)
+                    else
+                      process_content(File.read(path), 'blob')
+                    end
+    tree_entries << "#{entry_mode} #{entry}\0#{entry_content[:binary_digest]}"
   end
-
-  total_data_path = entries.join('')
-  process_content(total_data_path, 'tree')[:hex_digest]
+  process_content(tree_entries.join(''), 'tree')
 end
-
-def process_content(content, content_type)
-  headers = "#{content_type} #{content.bytesize}\0"
-  data_hsh = headers + content
-  data_hex_hsh = Digest::SHA1.hexdigest(data_hsh)
-  data_bin_hsh = Digest::SHA1.digest(data_hsh)
-  compressed_data = Zlib::Deflate.deflate(content)
-
-  dir_path = ".git/objects/#{data_hex_hsh[0..1]}"
-  file_name = "#{data_hex_hsh[2..-1]}"
-
-  FileUtils.mkdir_p(dir_path)
-
-  File.write("#{dir_path}/#{file_name}", compressed_data)
-
+def process_content(content, header_type)
+  entry_content = "#{header_type} #{content.bytes.length}\0#{content}"
+  hex_digest = Digest::SHA1.hexdigest(entry_content)
+  binary_digest = Digest::SHA1.digest(entry_content)
+  git_object_dir = File.join(Dir.pwd, '.git', 'objects', hex_digest[0..1])
+  Dir.mkdir(git_object_dir) unless Dir.exist?(git_object_dir)
+  git_object_path = File.join(git_object_dir, hex_digest[2..])
+  File.write(git_object_path, Zlib::Deflate.deflate(entry_content))
   {
-    hex_digest: data_hex_hsh,
-    bin_digest: data_bin_hsh
+    hex_digest: hex_digest,
+    binary_digest: binary_digest
   }
 end
 
@@ -134,8 +122,7 @@ when "ls-tree"
     puts internal_data[-1]
   end
 when "write-tree"
-  tree_sha_hsh = process_dir(Dir.pwd)
-  puts tree_sha_hsh
+  puts process_dir(Dir.pwd)[:hex_digest]
 else
   raise RuntimeError.new("Unknown command #{command}")
 end
