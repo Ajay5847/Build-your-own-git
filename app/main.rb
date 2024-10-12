@@ -1,4 +1,5 @@
 require 'zlib'
+require 'digest'
 # You can use print statements as follows for debugging, they'll be visible when running tests.
 # puts "Logs from your program will appear here!"
 
@@ -19,6 +20,14 @@ when "cat-file"
   decompressed_data = Zlib::Inflate.inflate(compressed_data)
   headers, content = decompressed_data.split("\0")
   print "#{content}"
+when "hash-object"
+  file_path = ARGV[2]
+  data = File.read(file_path)
+  bytesize = data.bytesize
+  puts "#{bytesize}"
+  data_to_hsh = "#{bytesize}\0#{data}"
+  sha_hsh = Digest::SHA1.hexdigest(data_to_hsh)
+  puts sha_hsh
 else
   raise RuntimeError.new("Unknown command #{command}")
 end
