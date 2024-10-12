@@ -11,7 +11,7 @@ def create_tree(dir_path)
     next if ['.', '..', '.git'].include?(path)
 
     full_path = File.join(dir_path, path)
-    is_dir = Dir.exists?(full_path)
+    is_dir = Dir.exist?(full_path)
 
     if is_dir
       mode = 40000
