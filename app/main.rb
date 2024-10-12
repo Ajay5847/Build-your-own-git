@@ -17,7 +17,7 @@ def create_tree(dir_path)
       mode = '40000'
       sha1_hsh = create_tree(full_path)
     else
-      mode = '100644'  
+      mode = '100644'
       sha1_hsh = create_blob(full_path)
     end
 
@@ -28,18 +28,21 @@ def create_tree(dir_path)
   header = "tree #{full_entry_data.bytesize}\0"
   data_to_hsh = header + full_entry_data
   tree_sha1 = Digest::SHA1.hexdigest(data_to_hsh)
+
+  # Store the tree object using the full entry data
   store_object(tree_sha1, data_to_hsh)
   tree_sha1
 end
 
 def create_blob(file_path)
   data = File.read(file_path)
-  header = "blob #{data.bytesize}\0"
+  header = "blob #{data.bytes.length}\0"  # Corrected to use `data.bytes.length`
   data_to_hsh = header + data
   data_hex_hsh = Digest::SHA1.hexdigest(data_to_hsh)
-  data_bin_hsh = Digest::SHA1.digest(data_to_hsh)
+  
+  # Only store the hex digest, not the binary digest as it's not used
   store_object(data_hex_hsh, data_to_hsh)
-  data_bin_hsh
+  data_hex_hsh  # Return the hex digest instead of binary
 end
 
 def store_object(sha_hsh, data)
@@ -50,6 +53,7 @@ def store_object(sha_hsh, data)
   FileUtils.mkdir_p(dir_path)
   File.write("#{dir_path}/#{file_name}", compressed_data)
 end
+
 
 command = ARGV[0]
 case command
