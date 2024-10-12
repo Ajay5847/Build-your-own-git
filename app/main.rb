@@ -61,7 +61,7 @@ def process_dir(dirname)
 
     if is_dir
       entry_mode = '40000'
-      entry_hsh = process_dir(entry_path)
+      entry_hsh = process_dir(entry_path)[:bin_digest]
     else
       entry_mode = '100644'
       entry_hsh = process_content(entry_path, 'blob')[:bin_digest]
