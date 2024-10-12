@@ -35,6 +35,7 @@ when "hash-object"
     FileUtils.mkdir_p(dir_path)
     File.write("#{dir_path}/#{file_name}", compressed_data)
   end
+  print sha1_hsh
 else
   raise RuntimeError.new("Unknown command #{command}")
 end
