@@ -8,7 +8,7 @@ require 'fileutils'
 def create_tree(dir_path)
   entries = []
   Dir.foreach(dir_path) do |path|
-    next if path == '.' || path == '..'
+    next if ['.', '..', '.git'].include?(path)
 
     full_path = File.join(dir_path, path)
     if File.directory?(full_path)
@@ -25,7 +25,7 @@ def create_tree(dir_path)
   full_entry_data = entries.join
   header = "tree #{full_entry_data.bytesize}\0"
   data_to_hsh = header + full_entry_data
-  tree_sha1 = Digest::SHA1.digest(data_to_hsh)
+  tree_sha1 = Digest::SHA1.hexdigest(data_to_hsh)
   store_object(tree_sha1, full_entry_data)
   tree_sha1
 end
@@ -92,8 +92,7 @@ when "ls-tree"
     puts internal_data[-1]
   end
 when "write-tree"
-  working_directory_path = '.'
-  tree_sha_hsh = create_tree(working_directory_path)
+  tree_sha_hsh = create_tree(Dir.pwd)
   print tree_sha_hsh
 else
   raise RuntimeError.new("Unknown command #{command}")
