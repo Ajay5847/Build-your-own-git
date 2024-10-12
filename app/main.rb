@@ -7,7 +7,7 @@ require 'fileutils'
 # Uncomment this block to pass the first stage
 def create_tree(dir_path)
   entries = []
-  Dir.entries(dir_path).sort do |path|
+  Dir.entries(dir_path).sort.each do |path|
     next if ['.', '..', '.git'].include?(path)
 
     full_path = File.join(dir_path, path)
