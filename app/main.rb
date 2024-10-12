@@ -38,7 +38,7 @@ when "hash-object"
   print sha1_hsh
 when "ls-tree"
   tree_hsh = ARGV[2]
-  file_path = ".git/object/#{tree_hsh[0..2]}/#{tree_hsh[2..-1]}"
+  file_path = ".git/object/#{tree_hsh[0..1]}/#{tree_hsh[2..-1]}"
   compressed_data = File.read(file_path)
   decompressed_data = Zlib::Inflate.inflate(compressed_data)
   print decompressed_data
