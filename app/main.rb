@@ -1,3 +1,4 @@
+require 'zlib'
 # You can use print statements as follows for debugging, they'll be visible when running tests.
 puts "Logs from your program will appear here!"
 
@@ -11,6 +12,14 @@ when "init"
   Dir.mkdir(".git/refs")
   File.write(".git/HEAD", "ref: refs/heads/main\n")
   puts "Initialized git directory"
+when "cat-file"
+  object_hsh = ARGV[2]
+  puts "#{object_hsh}"
+  file_path = "./git/objects/#{object_hsh[0,2]}/#{object_hsh[2,38]}"
+  puts "#{object_hsh[0,2]}"
+  compressed_data = File.read(file_path)
+  decompressed_data = Zlib::Inflate.inflate(compressed_data)
+  puts "#{decompressed_data}"
 else
   raise RuntimeError.new("Unknown command #{command}")
 end
