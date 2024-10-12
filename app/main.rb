@@ -5,51 +5,93 @@ require 'fileutils'
 # puts "Logs from your program will appear here!"
 
 # Uncomment this block to pass the first stage
-def create_tree(dir_path)
-  entries = []
-  Dir.entries(dir_path).sort.each do |path|
-    next if ['.', '..', '.git'].include?(path)
+# def create_tree(dir_path)
+#   entries = []
+#   Dir.entries(dir_path).sort.each do |path|
+#     next if ['.', '..', '.git'].include?(path)
 
-    full_path = File.join(dir_path, path)
-    is_dir = Dir.exist?(full_path)
+#     full_path = File.join(dir_path, path)
+#     is_dir = Dir.exist?(full_path)
+
+#     if is_dir
+#       mode = 40000
+#       sha1_hsh = create_tree(full_path)
+#     else
+#       mode = 100644  
+#       sha1_hsh = create_blob(full_path)
+#     end
+
+#     entries << "#{mode} #{path}\0#{sha1_hsh}"
+#   end
+
+#   full_entry_data = entries.join('')
+#   header = "tree #{full_entry_data.bytesize}\0"
+#   data_to_hsh = header + full_entry_data
+#   tree_sha1 = Digest::SHA1.hexdigest(data_to_hsh)
+#   store_object(tree_sha1, full_entry_data)
+#   tree_sha1
+# end
+
+# def create_blob(file_path)
+#   data = File.read(file_path)
+#   header = "blob #{data.bytesize}\0"
+#   data_to_hsh = header + data
+#   data_hex_hsh = Digest::SHA1.hexdigest(data_to_hsh)
+#   data_bin_hsh = Digest::SHA1.digest(data_to_hsh)
+#   store_object(data_hex_hsh, data)
+#   data_bin_hsh
+# end
+
+# def store_object(sha_hsh, data)
+#   compressed_data = Zlib::Deflate.deflate(data)
+#   dir_path = ".git/objects/#{sha_hsh[0..1]}"
+#   file_name = "#{sha_hsh[2..-1]}"
+
+#   FileUtils.mkdir_p(dir_path)
+#   File.write("#{dir_path}/#{file_name}", compressed_data)
+# end
+
+def process_dir(dirname)
+  entries = []
+  Dir.entries(dirname).sort.each do |entry|
+    next if ['.', '..', '.git'].include?(entry)
+
+    entry_path = "#{dirname}/#{entry}"
+    is_dir = Dir.exist?(entry_path)
 
     if is_dir
-      mode = 40000
-      sha1_hsh = create_tree(full_path)
+      entry_mode = 40000
+      entry_hsh = process_dir(entry_path)
     else
-      mode = 100644  
-      sha1_hsh = create_blob(full_path)
+      entry_mode = 100644
+      entry_hsh = process_content(entry_path, 'blob')[:bin_digest]
     end
 
-    entries << "#{mode} #{path}\0#{sha1_hsh}"
+    entries << "#{mode} #{entry}\0#{entry_hsh}"
   end
 
-  full_entry_data = entries.join('')
-  header = "tree #{full_entry_data.bytesize}\0"
-  data_to_hsh = header + full_entry_data
-  tree_sha1 = Digest::SHA1.hexdigest(data_to_hsh)
-  store_object(tree_sha1, full_entry_data)
-  tree_sha1
+  total_data_path = entries.join('')
+  process_content(content, 'tree')[:hex_digest]
 end
 
+def process_content(content, content_type)
+  headers = "#{content_type} #{content.bytesize}\0"
+  data_hsh = headers + content
+  data_hex_hsh = Digest::SHA1.hexdigest(data_hsh)
+  data_bin_hsh = Digest::SHA1.digest(data_hsh)
+  compressed_data = Zlib::Deflate.deflate(content)
 
-def create_blob(file_path)
-  data = File.read(file_path)
-  header = "blob #{data.bytesize}\0"
-  data_to_hsh = header + data
-  data_hex_hsh = Digest::SHA1.hexdigest(data_to_hsh)
-  data_bin_hsh = Digest::SHA1.digest(data_to_hsh)
-  store_object(data_hex_hsh, data)
-  data_bin_hsh
-end
-
-def store_object(sha_hsh, data)
-  compressed_data = Zlib::Deflate.deflate(data)
-  dir_path = ".git/objects/#{sha_hsh[0..1]}"
-  file_name = "#{sha_hsh[2..-1]}"
+  dir_path = ".git/objects/#{data_hex_hsh[0..1]}"
+  file_name = "#{data_hex_hsh[2..-1]}"
 
   FileUtils.mkdir_p(dir_path)
+
   File.write("#{dir_path}/#{file_name}", compressed_data)
+
+  {
+    hex_digest: data_hex_hsh,
+    bin_digest: data_bin_hsh
+  }
 end
 
 command = ARGV[0]
