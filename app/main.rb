@@ -18,7 +18,7 @@ when "cat-file"
   compressed_data = File.read(file_path)
   decompressed_data = Zlib::Inflate.inflate(compressed_data)
   headers, content = decompressed_data.split("\0")
-  puts "#{content}"
+  print "#{content}"
 else
   raise RuntimeError.new("Unknown command #{command}")
 end
