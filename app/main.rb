@@ -123,7 +123,7 @@ when "ls-tree"
     puts internal_data[-1]
   end
 when "write-tree"
-  puts process_dir(Dir.pwd)[:binary_digest]
+  puts process_dir(Dir.pwd)[:hex_digest]
 else
   raise RuntimeError.new("Unknown command #{command}")
 end
