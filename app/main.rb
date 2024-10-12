@@ -11,10 +11,12 @@ def create_tree(dir_path)
     next if ['.', '..', '.git'].include?(path)
 
     full_path = File.join(dir_path, path)
-    if File.directory?(full_path)
-      mode = 040000
+    is_dir = Dir.exists?(full_path)
+
+    if is_dir
+      mode = 40000
       sha1_hsh = create_tree(full_path)
-    elsif File.file?(full_path)
+    else
       mode = 100644  
       sha1_hsh = create_blob(full_path)
     end
@@ -22,7 +24,7 @@ def create_tree(dir_path)
     entries << "#{mode} #{path}\0#{sha1_hsh}"
   end
 
-  full_entry_data = entries.join
+  full_entry_data = entries.join('')
   header = "tree #{full_entry_data.bytesize}\0"
   data_to_hsh = header + full_entry_data
   tree_sha1 = Digest::SHA1.hexdigest(data_to_hsh)
