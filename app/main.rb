@@ -41,7 +41,7 @@ def create_blob(file_path)
 end
 
 def store_object(sha_hsh, data)
-  compressed_data = Zlip::Deflate.deflate(data)
+  compressed_data = Zlib::Deflate.deflate(data)
   file_path_to_write = ".git/objects/#{sha_hsh[0..1]}/#{sha_hsh[2..-1]}"
   File.write(file_path_to_write, compressed_data)
 end
