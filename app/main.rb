@@ -36,6 +36,13 @@ when "hash-object"
     File.write("#{dir_path}/#{file_name}", compressed_data)
   end
   print sha1_hsh
+when "ls-tree"
+  tree_hsh = ARGV[2]
+  file_path = ".git/object/#{tree_hsh[0..2]}/#{tree_hsh[2..-1]}"
+  compressed_data = File.read(file_path)
+  decompressed_data = Zlib::Inflate.inflate(compressed_data)
+  print decompressed_data
+  # headers, content = decompressed_data.split(" ")
 else
   raise RuntimeError.new("Unknown command #{command}")
 end
