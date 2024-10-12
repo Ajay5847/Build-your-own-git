@@ -42,8 +42,11 @@ end
 
 def store_object(sha_hsh, data)
   compressed_data = Zlib::Deflate.deflate(data)
-  file_path_to_write = ".git/objects/#{sha_hsh[0..1]}/#{sha_hsh[2..-1]}"
-  File.write(file_path_to_write, compressed_data)
+  dir_path = ".git/objects/#{sha_hsh[0..1]}"
+  file_name = "#{sha_hsh[2..-1]}"
+
+  FileUtils.mkdir_p(dir_path)
+  File.write("#{dir_path}/#{file_name}", compressed_data)
 end
 
 command = ARGV[0]
