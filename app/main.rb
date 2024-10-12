@@ -25,7 +25,7 @@ def create_tree(dir_path)
   full_entry_data = entries.join
   header = "tree #{full_entry_data.bytesize}\0"
   data_to_hsh = header + full_entry_data
-  tree_sha1 = Digest::SHA1.hexdigest(data_to_hsh)
+  tree_sha1 = Digest::SHA1.digest(data_to_hsh)
   store_object(tree_sha1, full_entry_data)
   tree_sha1
 end
@@ -35,9 +35,10 @@ def create_blob(file_path)
   data = File.read(file_path)
   header = "blob #{data.bytesize}\0"
   data_to_hsh = header + data
-  data_hsh = Digest::SHA1.hexdigest(data_to_hsh)
-  store_object(data_hsh, data)
-  data_hsh
+  data_hex_hsh = Digest::SHA1.hexdigest(data_to_hsh)
+  data_bin_hsh = Digest::SHA1.digest(data_to_hsh)
+  store_object(data_hex_hsh, data)
+  data_bin_hsh
 end
 
 def store_object(sha_hsh, data)
