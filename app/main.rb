@@ -60,10 +60,10 @@ def process_dir(dirname)
     is_dir = Dir.exist?(entry_path)
 
     if is_dir
-      entry_mode = 40000
+      entry_mode = '40000'
       entry_hsh = process_dir(entry_path)
     else
-      entry_mode = 100644
+      entry_mode = '100644'
       entry_hsh = process_content(entry_path, 'blob')[:bin_digest]
     end
 
