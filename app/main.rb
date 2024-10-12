@@ -64,7 +64,7 @@ def process_dir(dirname)
       entry_hsh = process_dir(entry_path)[:bin_digest]
     else
       entry_mode = '100644'
-      entry_hsh = process_content(entry_path, 'blob')[:bin_digest]
+      entry_hsh = process_content(File.read(entry_path), 'blob')[:bin_digest]
     end
 
     entries << "#{entry_mode} #{entry}\0#{entry_hsh}"
@@ -74,8 +74,7 @@ def process_dir(dirname)
   process_content(total_data_path, 'tree')[:hex_digest]
 end
 
-def process_content(file_path, content_type)
-  content = File.read(file_path)
+def process_content(content, content_type)
   headers = "#{content_type} #{content.bytesize}\0"
   data_hsh = headers + content
   data_hex_hsh = Digest::SHA1.hexdigest(data_hsh)
