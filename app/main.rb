@@ -94,7 +94,7 @@ when "ls-tree"
   end
 when "write-tree"
   tree_sha_hsh = create_tree(Dir.pwd)
-  print tree_sha_hsh
+  puts tree_sha_hsh
 else
   raise RuntimeError.new("Unknown command #{command}")
 end
