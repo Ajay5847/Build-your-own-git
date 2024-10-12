@@ -14,12 +14,11 @@ when "init"
   puts "Initialized git directory"
 when "cat-file"
   object_hsh = ARGV[2]
-  puts "#{object_hsh}"
-  file_path = "./git/objects/#{object_hsh[0,2]}/#{object_hsh[2,38]}"
-  puts "#{object_hsh[0,2]}"
+  file_path = ".git/objects/#{object_hsh[0,2]}/#{object_hsh[2,38]}"
   compressed_data = File.read(file_path)
   decompressed_data = Zlib::Inflate.inflate(compressed_data)
-  puts "#{decompressed_data}"
+  headers, content = decompressed_data.split("\0")
+  puts "#{content}"
 else
   raise RuntimeError.new("Unknown command #{command}")
 end
