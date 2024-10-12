@@ -42,8 +42,12 @@ when "ls-tree"
   compressed_data = File.read(file_path)
   decompressed_data = Zlib::Inflate.inflate(compressed_data)
   splitted_data = decompressed_data.split("\0")
-  puts splitted_data
-  print decompressed_data
+  splitted_data.each do |data|
+    internal_data = data.split(' ')
+    print internal_data[-1]
+  end
+  # puts splitted_data
+  # print decompressed_data
   # headers, content = decompressed_data.split(" ")
 else
   raise RuntimeError.new("Unknown command #{command}")
