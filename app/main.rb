@@ -5,6 +5,46 @@ require 'fileutils'
 # puts "Logs from your program will appear here!"
 
 # Uncomment this block to pass the first stage
+def create_tree(dir_path)
+  entries = []
+  Dir.foreach(dir_path) do |path|
+    next if path == '.' || path == '..'
+
+    full_path = File.join(dir_path, path)
+    if File.directory?(full_path)
+      mode = 040000
+      sha_hsh = create_tree(full_path)
+    elsif File.file?(full_path)
+      mode = 100644  
+      sha1_hsh = create_blob(full_path)
+    end
+
+    entries << "#{mode} #{path}\0#{sha1_hsh}"
+  end
+
+  full_entry_data = entries.join
+  header = "tree #{full_entry_data.bytesize}\0"
+  data_to_hsh = header + full_entry_data
+  tree_sha1 = Digest::SHA1.hexdigest(data_to_hsh)
+  store_object(tree_sha1, full_entry_data)
+  tree_sha1
+end
+
+
+def create_blob(file_path)
+  data = File.read(file_path)
+  header = "blob #{data.bytesize}\0"
+  data_to_hsh = header + data
+  data_hsh = Digest::SHA1.hexdigest(data_to_hsh)
+  store_object(data_hsh, data)
+  data_hsh
+end
+
+def store_object(sha_hsh, data)
+  compressed_data = Zlip::Deflate.deflate(data)
+  file_path_to_write = ".git/objects/#{sha_hsh[0..1]}/#{sha_hsh[2..-1]}"
+  File.write(file_path_to_write, compressed_data)
+end
 
 command = ARGV[0]
 case command
@@ -52,45 +92,4 @@ when "write-tree"
   print tree_sha_hsh
 else
   raise RuntimeError.new("Unknown command #{command}")
-end
-
-def create_tree(dir_path)
-  entries = []
-  Dir.foreach(dir_path) do |path|
-    next if path == '.' || path == '..'
-
-    full_path = File.join(dir_path, path)
-    if File.directory?(full_path)
-      mode = 040000
-      sha_hsh = create_tree(full_path)
-    elsif File.file?(full_path)
-      mode = 100644  
-      sha1_hsh = create_blob(full_path)
-    end
-
-    entries << "#{mode} #{path}\0#{sha1_hsh}"
-  end
-
-  full_entry_data = entries.join
-  header = "tree #{full_entry_data.bytesize}\0"
-  data_to_hsh = header + full_entry_data
-  tree_sha1 = Digest::SHA1.hexdigest(data_to_hsh)
-  store_object(tree_sha1, full_entry_data)
-  tree_sha1
-end
-
-
-def create_blob(file_path)
-  data = File.read(file_path)
-  header = "blob #{data.bytesize}\0"
-  data_to_hsh = header + data
-  data_hsh = Digest::SHA1.hexdigest(data_to_hsh)
-  store_object(data_hsh, data)
-  data_hsh
-end
-
-def store_object(sha_hsh, data)
-  compressed_data = Zlip::Deflate.deflate(data)
-  file_path_to_write = ".git/objects/#{sha_hsh[0..1]}/#{sha_hsh[2..-1]}"
-  File.write(file_path_to_write, compressed_data)
 end
