@@ -71,7 +71,7 @@ def process_dir(dirname)
   end
 
   total_data_path = entries.join('')
-  process_content(content, 'tree')[:hex_digest]
+  process_content(total_data_path, 'tree')[:hex_digest]
 end
 
 def process_content(content, content_type)
