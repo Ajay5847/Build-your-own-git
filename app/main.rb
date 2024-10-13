@@ -143,7 +143,11 @@ when "ls-tree"
   splitted_data = decompressed_data.split("\0")
   splitted_data[1..-2].each do |data|
     internal_data = data.split(' ')
-    puts internal_data[-1]
+    
+    # Ensure internal_data contains a valid file name, ignoring binary data
+    if internal_data[-1] =~ /\A[\x20-\x7E]+\z/
+      puts internal_data[-1]
+    end
   end
 when "write-tree"
   puts process_dir(Dir.pwd)[:hex_digest]
