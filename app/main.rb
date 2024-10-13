@@ -97,7 +97,7 @@ def create_commit(tree_sha, parent_flag, parent_sha, message_flag, message)
   tree_info = "tree #{tree_sha}"
   parent_info = "parent #{parent_sha}"
 
-  content = [tree_info, parent_info, author_info, committer_info, ' ', message].join("\n")
+  content = [tree_info, parent_info, author_info, committer_info, ' ', message].join("\n") + "\n"
   header = "commit #{content.bytesize}\0"
   data_to_hsh = header + content
   commit_sha = Digest::SHA1.hexdigest(data_to_hsh)
