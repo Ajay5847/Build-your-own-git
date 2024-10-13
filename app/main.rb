@@ -153,7 +153,7 @@ when "commit-tree"
   parent_sha = ARGV[3]
   message_flag = ARGV[4]
   message = ARGV[5]
-  create_commit(tree_sha, parent_flag, parent_sha, message_flag, message)
+  puts create_commit(tree_sha, parent_flag, parent_sha, message_flag, message)
 else
   raise RuntimeError.new("Unknown command #{command}")
 end
