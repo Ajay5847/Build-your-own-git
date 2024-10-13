@@ -146,7 +146,7 @@ when "ls-tree"
     puts internal_data[-1]
   end
 when "write-tree"
-  puts create_tree(Dir.pwd)
+  puts process_dir(Dir.pwd)
 when "commit-tree"
   tree_sha = ARGV[1]
   parent_flag = ARGV[2]
