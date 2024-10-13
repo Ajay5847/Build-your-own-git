@@ -5,45 +5,45 @@ require 'fileutils'
 # puts "Logs from your program will appear here!"
 
 # Uncomment this block to pass the first stage
-def create_tree(dir_path)
-  tree_entries = []
-  Dir.entries(dir_path).sort.each do |path|
-    next if ['.', '..', '.git'].include?(path)
+# def create_tree(dir_path)
+#   tree_entries = []
+#   Dir.entries(dir_path).sort.each do |path|
+#     next if ['.', '..', '.git'].include?(path)
 
-    full_path = "#{dir_path}/#{path}"
-    is_dir = Dir.exist?(full_path)
+#     full_path = "#{dir_path}/#{path}"
+#     is_dir = Dir.exist?(full_path)
 
-    if is_dir
-      mode = '40000'
-      sha1_hsh = create_tree(full_path)
-    else
-      mode = '100644'  
-      sha1_hsh = create_blob(full_path)
-    end
+#     if is_dir
+#       mode = '40000'
+#       sha1_hsh = create_tree(full_path)
+#     else
+#       mode = '100644'  
+#       sha1_hsh = create_blob(full_path)
+#     end
 
-    tree_entries << "#{mode} #{path}\0#{sha1_hsh[:bin_digest]}"
-  end
+#     tree_entries << "#{mode} #{path}\0#{sha1_hsh[:bin_digest]}"
+#   end
 
-  full_entry_data = tree_entries.join('')
-  header = "tree #{full_entry_data.bytesize}\0"
-  data_to_hsh = header + full_entry_data
-  tree_sha1 = Digest::SHA1.hexdigest(data_to_hsh)
-  store_object(tree_sha1, full_entry_data)
-  tree_sha1
-end
+#   full_entry_data = tree_entries.join('')
+#   header = "tree #{full_entry_data.bytesize}\0"
+#   data_to_hsh = header + full_entry_data
+#   tree_sha1 = Digest::SHA1.hexdigest(data_to_hsh)
+#   store_object(tree_sha1, full_entry_data)
+#   tree_sha1
+# end
 
-def create_blob(file_path)
-  data = File.read(file_path)
-  header = "blob #{data.bytesize}\0"
-  data_to_hsh = header + data
-  data_hex_hsh = Digest::SHA1.hexdigest(data_to_hsh)
-  data_bin_hsh = Digest::SHA1.digest(data_to_hsh)
-  store_object(data_hex_hsh, data)
-  {
-    hex_digest: data_hex_hsh,
-    bin_digest: data_bin_hsh
-  }
-end
+# def create_blob(file_path)
+#   data = File.read(file_path)
+#   header = "blob #{data.bytesize}\0"
+#   data_to_hsh = header + data
+#   data_hex_hsh = Digest::SHA1.hexdigest(data_to_hsh)
+#   data_bin_hsh = Digest::SHA1.digest(data_to_hsh)
+#   store_object(data_hex_hsh, data)
+#   {
+#     hex_digest: data_hex_hsh,
+#     bin_digest: data_bin_hsh
+#   }
+# end
 
 def store_object(sha_hsh, data)
   compressed_data = Zlib::Deflate.deflate(data)
@@ -54,36 +54,56 @@ def store_object(sha_hsh, data)
   File.write("#{dir_path}/#{file_name}", compressed_data)
 end
 
-# def process_dir(dirname)
-#   tree_entries = []
-#   Dir.entries(dirname).sort.each do |entry|
-#     path = "#{dirname}/#{entry}"
-#     is_dir = Dir.exist?(path)
-#     next if ['.', '..', '.git'].include?(entry)
-#     entry_mode = is_dir ? '40000' : '100644'
-#     entry_content = if is_dir
-#                       process_dir(path)
-#                     else
-#                       process_content(File.read(path), 'blob')
-#                     end
-#     tree_entries << "#{entry_mode} #{entry}\0#{entry_content[:binary_digest]}"
-#   end
-#   process_content(tree_entries.join(''), 'tree')
-# end
+def process_dir(dirname)
+  tree_entries = []
+  Dir.entries(dirname).sort.each do |entry|
+    path = "#{dirname}/#{entry}"
+    is_dir = Dir.exist?(path)
+    next if ['.', '..', '.git'].include?(entry)
+    entry_mode = is_dir ? '40000' : '100644'
+    entry_content = if is_dir
+                      process_dir(path)
+                    else
+                      process_content(File.read(path), 'blob')
+                    end
+    tree_entries << "#{entry_mode} #{entry}\0#{entry_content[:binary_digest]}"
+  end
+  process_content(tree_entries.join(''), 'tree')
+end
 
-# def process_content(content, header_type)
-#   entry_content = "#{header_type} #{content.bytes.length}\0#{content}"
-#   hex_digest = Digest::SHA1.hexdigest(entry_content)
-#   binary_digest = Digest::SHA1.digest(entry_content)
-#   git_object_dir = File.join(Dir.pwd, '.git', 'objects', hex_digest[0..1])
-#   Dir.mkdir(git_object_dir) unless Dir.exist?(git_object_dir)
-#   git_object_path = File.join(git_object_dir, hex_digest[2..])
-#   File.write(git_object_path, Zlib::Deflate.deflate(entry_content))
-#   {
-#     hex_digest: hex_digest,
-#     binary_digest: binary_digest
-#   }
-# end
+def process_content(content, header_type)
+  entry_content = "#{header_type} #{content.bytes.length}\0#{content}"
+  hex_digest = Digest::SHA1.hexdigest(entry_content)
+  binary_digest = Digest::SHA1.digest(entry_content)
+  git_object_dir = File.join(Dir.pwd, '.git', 'objects', hex_digest[0..1])
+  Dir.mkdir(git_object_dir) unless Dir.exist?(git_object_dir)
+  git_object_path = File.join(git_object_dir, hex_digest[2..])
+  File.write(git_object_path, Zlib::Deflate.deflate(entry_content))
+  {
+    hex_digest: hex_digest,
+    binary_digest: binary_digest
+  }
+end
+
+def create_commit(tree_sha, parent_flag, parent_sha, message_flag, message)
+  author_name = "Ajay5847"
+  author_email = "ajay@ca.co"
+  committer_name = "AjayBunty"
+  committer_email = "ajaybunty@ca.co"
+  author_time = committer_time = Time.now
+
+  author_info = "#{author_name} #{author_email} #{author_time}"
+  committer_info = "#{committer_name} #{committer_email} #{committer_time}"
+  tree_info = "tree #{tree_sha}"
+  parent_info = "parent #{parent_sha}"
+
+  content = [tree_info, parent_info, author_info, committer_info, ' ', message].join("\n")
+  header = "commit #{content.bytesize}\0"
+  data_to_hsh = header + content
+  commit_sha = Digest::SHA1.hexdigest(data_to_hsh)
+  store_object(commit_sha, data_to_hsh)
+  commit_sha
+end
 
 command = ARGV[0]
 case command
@@ -127,6 +147,13 @@ when "ls-tree"
   end
 when "write-tree"
   puts create_tree(Dir.pwd)
+when "commit-tree"
+  tree_sha = ARGV[1]
+  parent_flag = ARGV[2]
+  parent_sha = ARGV[3]
+  message_flag = ARGV[4]
+  message = ARGV[5]
+  create_commit(tree_sha, parent_flag, parent_sha, message_flag, message)
 else
   raise RuntimeError.new("Unknown command #{command}")
 end
