@@ -158,6 +158,10 @@ when "commit-tree"
   message_flag = ARGV[4]
   message = ARGV[5]
   puts create_commit(tree_sha, parent_flag, parent_sha, message_flag, message)
+when "clone"
+  url = ARGV[1]
+  directory = ARGV[2]
+  system("git clone #{url} #{directory}")
 else
   raise RuntimeError.new("Unknown command #{command}")
 end
